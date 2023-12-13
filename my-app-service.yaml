@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-service 
+  # namespace: uni-ns 
+spec:
+  ports:
+  - port: 3001
+    # nodePort: 31001
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: my-app
+  type: LoadBalancer
+  #type: NodePort

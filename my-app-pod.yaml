@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-app
+
+  # for service connection
+  labels:
+    app: my-app
+spec:
+  containers:
+  - name: my-app
+    image: registry.digitalocean.com/lehel-registry/my-app:20231110
+
+    imagePullPolicy: Always
+    env:
+      - name: SECRET_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: db-secrets
+            key: username  
+      - name: SECRET_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: db-secrets
+            key: password  
+    ports:
+      - name: lb-my-app-port
+        containerPort: 3000
+        protocol: TCP 
+    
+  imagePullSecrets:
+    - name: my-docker-secret
+
