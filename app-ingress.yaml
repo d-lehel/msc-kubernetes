@@ -1,0 +1,79 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /test
+            pathType: Prefix 
+            backend:
+              service:
+                name: user-api-service
+                port:
+                  number: 3000
+          - path: /register
+            pathType: Prefix 
+            backend:
+              service:
+                name: user-api-service
+                port:
+                  number: 3000
+          - path: /users
+            pathType: Prefix 
+            backend:
+              service:
+                name: user-api-service
+                port:
+                  number: 3000
+
+          - path: /mongo-url
+            pathType: Prefix 
+            backend:
+              service:
+                name: user-api-service
+                port:
+                  number: 3000
+
+          - path: /db-connection
+            pathType: Prefix 
+            backend:
+              service:
+                name: user-api-service
+                port:
+                  number: 3000
+
+          
+          - path: /test2
+            pathType: Prefix 
+            backend:
+              service:
+                name: notification-api-service
+                port:
+                  number: 3001
+          - path: /notifications
+            pathType: Prefix 
+            backend:
+              service:
+                name: notification-api-service
+                port:
+                  number: 3001
+
+          - path: /mongo-url2
+            pathType: Prefix 
+            backend:
+              service:
+                name: notification-api-service
+                port:
+                  number: 3001
+
+          - path: /db-connection2
+            pathType: Prefix 
+            backend:
+              service:
+                name: notification-api-service
+                port:
+                  number: 3001

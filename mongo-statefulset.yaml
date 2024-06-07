@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  # Unique name for the StatefulSet
+  name: mongo-statefulset
+spec:
+  # Selector to match the labels of Pods managed by this StatefulSet
+  selector:
+    matchLabels:
+      name: mongodb
+      env: test
+      owner: lehel
+  # Service name that the StatefulSet creates to identify the set of Pods
+  serviceName: "mongo-service"
+  # Number of desired replicas of the Pod
+  replicas: 3 # !!!!!!!!!!!!!!!!!!!
+  # Template for creating Pods
+  template:
+    metadata:
+      # Labels applied to all Pods created from this template
+      labels:
+        name: mongodb
+        env: test
+        owner: lehel
+    spec:
+      serviceAccountName: mongo-account
+      # Termination grace period for the Pod
+      terminationGracePeriodSeconds: 10
+      # Containers within the Pod
+      containers:
+      - name: mongo
+        # Docker image for the container
+        image: mongo:4.0
+        # Command to execute within the container
+        command: ["/bin/sh","-c"]
+        # Arguments passed to the command
+        args: ["cp /secret /usr/local/bin/secret && chown 999:999 /usr/local/bin/secret && /usr/local/bin/docker-entrypoint.sh --replSet MainRepSet --bind_ip 0.0.0.0 --keyFile /usr/local/bin/secret"]
+        # Ports exposed by the container
+        ports:
+          - containerPort: 27017
+        # Environment variables for the container
+        env:
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: mongouser # mongouser !!!!! was before
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: mongouser
+        - name: MONGO_INITDB_DATABASE
+          value: microservice1 # database name !!!!!!
+        # Resource limits and requests for CPU and memory
+        resources:
+          # Limits and requests for CPU
+          limits:
+            cpu: 250m # Maximum CPU usage allowed
+          requests:
+            cpu: 200m # Minimum CPU resources requested
+          # Limits and requests for memory
+          limits:
+            memory: 100M # Maximum memory usage allowed
+          requests:
+            memory: 100M # Minimum memory resources requested
+        # Volume mounts for the container
+        volumeMounts:
+          - name: mongo-persistent-storage
+            mountPath: /data/db # Mount path for MongoDB data storage
+          - mountPath: /secret
+            name: secretkeyvolume
+            subPath: secretkey
+      # Sidecar container for additional functionalities
+      - name: mongo-sidecar
+        image: cvallance/mongo-k8s-sidecar
+        # Environment variables for the sidecar container
+        env:
+          - name: MONGO_SIDECAR_POD_LABELS
+            value: "name=mongodb,env=test,owner=lehel"
+          - name: MONGODB_USERNAME # Should be imported using a configmap
+            value: mongouser
+          - name: MONGODB_PASSWORD # Should be imported using a secret
+            value: mongouser
+          - name: MONGODB_DATABASE
+            value: microservice1
+        # Resource limits and requests for CPU and memory
+        resources:
+          # Limits and requests for CPU
+          limits:
+            cpu: 250m # Maximum CPU usage allowed
+          requests:
+            cpu: 200m # Minimum CPU resources requested
+          # Limits and requests for memory
+          limits:
+            memory: 100M # Maximum memory usage allowed
+          requests:
+            memory: 100M # Minimum memory resources requested
+      # Volumes to be mounted in the Pods
+      volumes:
+        - name: secretkeyvolume
+          # Secret volume mount
+          secret:
+              secretName: mongo-secret # Name of the secret containing the key file
+              defaultMode: 0400 # Default permissions for the mounted secret file
+  # Persistent volume claim templates for the Pods
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-persistent-storage # Name of the persistent volume claim
+      spec:
+        # Storage class for provisioning the persistent volume
+        storageClassName: "do-block-storage" # Name of the storage class
+        # Access mode for the persistent volume
+        accessModes: ["ReadWriteOnce"] # Access mode for the persistent volume
+        # Resources requested for the persistent volume
+        resources:
+          requests:
+            storage: 1Gi # Size of the persistent volume requested (1 gigabyte)
+
+

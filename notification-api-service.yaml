@@ -1,0 +1,16 @@
+apiVersion: v1 #version of the API to use
+kind: Service #what kind of object we're deploying
+metadata: #information about our object we're deploying
+  name: notification-api-service #aame of the service
+  labels:
+    owner: lehel
+spec: #specifications for our object
+  #type: NodePort #Ignore for now
+  type: ClusterIP
+  ports: #Ignore for now
+  - name: http
+    port: 3001
+    targetPort: 80
+    protocol: TCP
+  selector: #label selector used to identify pods
+    app: notification-api
