@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 from kafka import KafkaConsumer
 import json
+import os
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -12,7 +13,13 @@ db = client['microservice1']
 email_logs_collection = db['email_logs']
 
 # Initialize Kafka consumer
-consumer = KafkaConsumer('user-notifications', bootstrap_servers='localhost:9092', group_id='notification-consumer')
+consumer = KafkaConsumer(
+    'user-notifications',
+    bootstrap_servers=[os.environ['KAFKA_URI']],
+    security_protocol='SASL_PLAINTEXT', sasl_mechanism='SCRAM-SHA-256',
+    sasl_plain_username=os.environ['KAFKA_USERNAME'],
+    sasl_plain_password=os.environ['KAFKA_PASSWORD']
+)
 
 # Function to consume messages from Kafka topic (user-notifications)
 def consume_user_notifications():

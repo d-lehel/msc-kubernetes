@@ -16,22 +16,32 @@ spec: #specifications for our object
     spec:
       containers:
       - name: nginx-container #the name of the container within the pod
-      
+
         #which container image should be pulled
         image: registry.digitalocean.com/lehel/notification-api:20240606
         imagePullPolicy: Always
         ports:
         - containerPort: 80 #the port of the container within the pod
-          protocol: TCP 
+          protocol: TCP
 
         env:
         - name: MONGO_URL
           value: "mongodb://mongouser:mongouser@mongo-service:27017/"
-          # In your Kubernetes deployment YAML
-
-        env:
-        - name: KAFKA_BOOTSTRAP_SERVERS
-          value: "my-kafka-controller-0.my-kafka-controller-headless.default.svc.cluster.local:9092"
+        - name: KAFKA_URI
+          valueFrom:
+            secretKeyRef:
+              name: kafka-notification-secret
+              key: kafka-uri
+        - name: KAFKA_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: kafka-notification-secret
+              key: kafka-username
+        - name: KAFKA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kafka-notification-secret
+              key: kafka-password
 
       imagePullSecrets:
         - name: lehel-registry-secret

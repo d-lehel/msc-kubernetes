@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from pydantic import BaseModel
 from kafka import KafkaProducer
 import bcrypt
+import json
 import os
 
 # Initialize FastAPI app
@@ -15,7 +16,12 @@ db = client['microservice1']
 users_collection = db['users']
 
 # Initialize Kafka producer
-# producer = KafkaProducer(bootstrap_servers='localhost:9092')
+producer = KafkaProducer(
+    bootstrap_servers=[os.environ['KAFKA_URI']],
+    security_protocol='SASL_PLAINTEXT', sasl_mechanism='SCRAM-SHA-256',
+    sasl_plain_username=os.environ['KAFKA_USERNAME'],
+    sasl_plain_password=os.environ['KAFKA_PASSWORD']
+)
 
 # Pydantic model for user registration request
 class UserRegistrationRequest(BaseModel):
@@ -27,17 +33,17 @@ class UserRegistrationRequest(BaseModel):
 def register_user(user: UserRegistrationRequest):
     email = user.email
     password = user.password
-    
+
     # Hash the password before saving it to the database
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-    
+
     # Save user to MongoDB
     users_collection.insert_one({'email': email, 'password': hashed_password})
-    
+
     # Produce message to Kafka topic with email and username
     message = {'email': email, 'username': username}
     producer.send('user-registration', value=json.dumps(message).encode('utf-8'))
-    
+
     return {'message': 'User registered successfully'}
 
 # Get users endpoint - Reads users from the database

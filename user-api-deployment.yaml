@@ -16,13 +16,13 @@ spec: #specifications for our object
     spec:
       containers:
       - name: nginx-container #the name of the container within the pod
-      
+
         #which container image should be pulled
         image: registry.digitalocean.com/lehel/user-api:20240606
         imagePullPolicy: Always
         ports:
         - containerPort: 80 #the port of the container within the pod
-          protocol: TCP 
+          protocol: TCP
 
         env:
         - name: MONGO_URL
@@ -32,6 +32,21 @@ spec: #specifications for our object
           # value: "mongodb://mongouser:mongouser@mongo-service:27017/users?authSource=microservice1"
           # value: "mongodb://mongouser:mongouser@mongo-service:27017/microservice1?replicaSet=MainRepSet"
           value: "mongodb://mongouser:mongouser@mongo-service:27017/"
+        - name: KAFKA_URI
+          valueFrom:
+            secretKeyRef:
+              name: kafka-user-secret
+              key: kafka-uri
+        - name: KAFKA_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: kafka-user-secret
+              key: kafka-username
+        - name: KAFKA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kafka-user-secret
+              key: kafka-password
 
 
       imagePullSecrets:

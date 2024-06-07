@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 from pydantic import BaseModel
-# from kafka import KafkaConsumer, KafkaProducer
+from kafka import KafkaConsumer, KafkaProducer
 import json
 import os
 
@@ -15,9 +15,19 @@ db = client['microservice1']
 notifications_collection = db['notifications']
 
 # Initialize Kafka consumer and producer
-kafka_bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
-# consumer = KafkaConsumer('user-registration', bootstrap_servers=kafka_bootstrap_servers, group_id='notification-group')
-# producer = KafkaProducer(bootstrap_servers=kafka_bootstrap_servers)
+consumer = KafkaConsumer(
+    'user-registration',
+    bootstrap_servers=[os.environ['KAFKA_URI']],
+    security_protocol='SASL_PLAINTEXT', sasl_mechanism='SCRAM-SHA-256',
+    sasl_plain_username=os.environ['KAFKA_USERNAME'],
+    sasl_plain_password=os.environ['KAFKA_PASSWORD']
+)
+producer = KafkaProducer(
+    bootstrap_servers=[os.environ['KAFKA_URI']],
+    security_protocol='SASL_PLAINTEXT', sasl_mechanism='SCRAM-SHA-256',
+    sasl_plain_username=os.environ['KAFKA_USERNAME'],
+    sasl_plain_password=os.environ['KAFKA_PASSWORD']
+)
 
 # Notification model
 class Notification(BaseModel):
@@ -34,11 +44,11 @@ def get_notifications():
 # def process_user_registration_event(email, username):
 #     # Create notification message
 #     message = f'New user registered with email: {email} and username: {username}'
-    
+
 #     # Save notification to MongoDB
 #     notification = {'user_email': email, 'username': username, 'message': message}
 #     notifications_collection.insert_one(notification)
-    
+
 #     # Produce message to Kafka topic (user-notifications)
 #     producer.send('user-notifications', value=json.dumps(notification).encode('utf-8'))
 

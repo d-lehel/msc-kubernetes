@@ -1,0 +1,14 @@
+provisioning:
+  enabled: true
+  topics:
+    - name: user-registration
+      partitions: 1
+    - name: user-notifications
+      partitions: 1
+sasl:
+  client:
+    users:
+      - email
+      - notification
+      - user
+    passwords: "12c6ebe28b36eef7,f6d1396c3f5782b3,f410957d9d63be5c"
